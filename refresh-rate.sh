@@ -1,7 +1,6 @@
-
 #!/usr/bin/env bash
 
-set -u
+set -euo pipefail
 
 OUTPUT="eDP-1"
 RESOLUTION="2560x1600"
@@ -21,7 +20,9 @@ on_ac_power() {
     return 1
 }
 
-while true; do
+update_refresh_rate() {
+    local RATE
+
     if on_ac_power; then
         RATE="165.018997"
     else
@@ -39,7 +40,13 @@ while true; do
             echo "Failed to set refresh rate to $RATE Hz"
         fi
     fi
+}
 
-    sleep 5
+# Apply the correct rate immediately
+update_refresh_rate
+
+# Wait for power-source events
+upower --monitor | while read -r event; do
+    update_refresh_rate
 done
 
